@@ -39,7 +39,9 @@ jobs:
     name: Publicar Release Oficial
     needs: build
     runs-on: ubuntu-latest
-    # Só executa esse passo de publicação se for uma Tag de versão (ex: v1.0.0)
+    permissions:
+      contents: write # ESSENCIAL: Autoriza o robô a criar a aba de Releases
+    # Só executa esse passo se for uma Tag de versão (ex: v1.0.0)
     if: startsWith(github.ref, 'refs/tags/v')
     
     steps:
