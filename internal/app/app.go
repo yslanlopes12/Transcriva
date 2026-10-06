@@ -153,16 +153,28 @@ func (a *App) cleanupAndGetHistory() []web.HistoryItem {
 
 // RunGUI executa o servidor web principal (Interface Gráfica)
 func (a *App) RunGUI() error {
-	defer a.capturer.Close()
+	defer func() {
+		if a.capturer != nil {
+			a.capturer.Close()
+		}
+	}()
 	return a.webServer.Start()
 }
 
 // RunCLI executa a interface de terminal
 func (a *App) RunCLI() error {
-	defer a.capturer.Close()
+	defer func() {
+		if a.capturer != nil {
+			a.capturer.Close()
+		}
+	}()
 
 	saveWAV := true
-	a.terminal.ShowWelcome(a.capturer.DeviceInfo().Name, "pt")
+	deviceName := "⚠️ Nenhum dispositivo encontrado"
+	if a.capturer != nil {
+		deviceName = a.capturer.DeviceInfo().Name
+	}
+	a.terminal.ShowWelcome(deviceName, "pt")
 
 	for {
 		key, err := ui.ReadKey()
@@ -190,6 +202,14 @@ func (a *App) RunCLI() error {
 
 // startSessionCLI inicia a transcrição no modo CLI
 func (a *App) startSessionCLI(saveWAV bool) error {
+	if a.capturer == nil {
+		newCap, err := audio.New()
+		if err != nil {
+			return fmt.Errorf("não há dispositivos de áudio disponíveis para gravar. Conecte um fone/caixa de som e tente novamente")
+		}
+		a.capturer = newCap
+	}
+
 	os.MkdirAll(transcriptionsDir, 0755)
 	if saveWAV {
 		os.MkdirAll(recordingsDir, 0755)
@@ -246,14 +266,22 @@ func (a *App) startSessionCLI(saveWAV bool) error {
 	fmt.Println("  Pressione qualquer tecla para voltar ao menu...")
 	ui.ReadKey()
 
-	a.capturer.Close()
+	if a.capturer != nil {
+		a.capturer.Close()
+	}
 	newCapturer, err := audio.New()
 	if err == nil {
 		a.capturer = newCapturer
+	} else {
+		a.capturer = nil
 	}
 	
+	deviceName := "⚠️ Nenhum dispositivo encontrado"
+	if a.capturer != nil {
+		deviceName = a.capturer.DeviceInfo().Name
+	}
 	a.terminal = ui.New()
-	a.terminal.ShowWelcome(a.capturer.DeviceInfo().Name, "pt")
+	a.terminal.ShowWelcome(deviceName, "pt")
 	return nil
 }
 
@@ -261,6 +289,18 @@ func (a *App) startSessionCLI(saveWAV bool) error {
 func (a *App) StartTranscriptionGUI(saveWAV bool) error {
 	if a.session != nil {
 		return fmt.Errorf("sessão já está em andamento")
+	}
+
+	if a.capturer == nil {
+		newCap, err := audio.New()
+		if err != nil {
+			return fmt.Errorf("Nenhum dispositivo de áudio conectado. Conecte um fone/alto-falante e tente novamente.")
+		}
+		a.capturer = newCap
+		// Atualiza o nome na UI assim que conectar
+		if a.webServer != nil {
+			a.webServer.GetDeviceInfo = func() string { return a.capturer.DeviceInfo().Name }
+		}
 	}
 
 	os.MkdirAll(transcriptionsDir, 0755)
@@ -312,10 +352,14 @@ func (a *App) StopTranscriptionGUI() {
 
 	a.session = nil
 
-	a.capturer.Close()
+	if a.capturer != nil {
+		a.capturer.Close()
+	}
 	newCapturer, err := audio.New()
 	if err == nil {
 		a.capturer = newCapturer
+	} else {
+		a.capturer = nil
 	}
 }
 
