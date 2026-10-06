@@ -1,0 +1,58 @@
+name: Build e Release - Transcriva
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - 'v*' # Dispara a criação do instalador quando uma tag (ex: v1.0.0) é "pushada"
+  pull_request:
+    branches: [ "main" ] # Testa o código quando alguém tenta contribuir
+
+jobs:
+  build:
+    name: Compilar Executável
+    # O projeto depende fortemente do pacote go-wca (WASAPI), que compila nativamente para Windows
+    runs-on: windows-latest 
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Configurar Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Baixar dependências (go mod tidy)
+      run: go mod download
+
+    - name: Compilar Transcriva (Windows .exe)
+      run: go build -o transcriva.exe -ldflags="-s -w" ./cmd/transcriva
+
+    - name: Fazer upload do executável (Artefato Temporário)
+      uses: actions/upload-artifact@v4
+      with:
+        name: transcriva-windows-exe
+        path: transcriva.exe
+
+  release:
+    name: Publicar Release Oficial
+    needs: build
+    runs-on: ubuntu-latest
+    # Só executa esse passo de publicação se for uma Tag de versão (ex: v1.0.0)
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Baixar o executável gerado no passo anterior
+      uses: actions/download-artifact@v4
+      with:
+        name: transcriva-windows-exe
+        path: ./release-bin
+
+    - name: Publicar Release no GitHub
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ./release-bin/transcriva.exe
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
