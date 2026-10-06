@@ -1,0 +1,20 @@
+# Arquivos de gravação de áudio
+
+Este diretório armazena as gravações WAV originais das sessões de transcrição.
+
+## Formato
+
+- Formato: WAV PCM 16-bit mono 16kHz
+- Nomenclatura: `reuniao_YYYY-MM-DD_HH-MM-SS.wav`
+
+## Uso
+
+Os arquivos WAV são úteis para:
+- Reouvir a reunião
+- Retranscrever com um modelo melhor
+- Verificar precisão da transcrição
+- Treinar/ajustar modelos futuramente
+
+## Nota
+
+Para iniciar sem salvar WAV, pressione `[W]` na tela inicial.

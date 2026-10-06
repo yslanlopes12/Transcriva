@@ -1,0 +1,35 @@
+# .gitignore — Transcriva
+
+# Executável gerado
+transcriva.exe
+
+# Binários externos (whisper-cli)
+bin/*.exe
+bin/*.dll
+
+# Modelos de IA (arquivos grandes)
+models/*.bin
+models/*.gguf
+
+# Arquivos de saída
+recordings/*.wav
+transcriptions/*.txt
+
+# Arquivos temporários do Whisper
+*.wav.json
+*.tmp
+
+# Go
+*.exe
+*.test
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store

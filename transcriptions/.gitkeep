@@ -1,0 +1,22 @@
+# Arquivos de transcrição
+
+Este diretório armazena as transcrições em texto das sessões.
+
+## Formato
+
+- Formato: TXT
+- Nomenclatura: `reuniao_YYYY-MM-DD_HH-MM-SS.txt`
+
+## Exemplo de conteúdo
+
+```
+Transcrição
+Data: 06/10/2026
+Horário: 14:30
+
+[00:00:05]
+Bom dia pessoal, vamos começar nossa reunião.
+
+[00:00:12]
+Hoje vamos falar sobre o projeto.
+```
