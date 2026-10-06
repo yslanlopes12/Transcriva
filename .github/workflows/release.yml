@@ -2,11 +2,11 @@ name: Build e Release - Transcriva
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "**" ] # Executa a compilação em TODAS as branches
     tags:
       - 'v*' # Dispara a criação do instalador quando uma tag (ex: v1.0.0) é "pushada"
   pull_request:
-    branches: [ "main" ] # Testa o código quando alguém tenta contribuir
+    branches: [ "**" ] # Testa o código de PRs para qualquer branch
 
 jobs:
   build:
