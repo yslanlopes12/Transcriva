@@ -45,6 +45,7 @@ type Server struct {
 	GetDeviceInfo   func() string
 	GetHistory      func() []HistoryItem
 	OnDeleteHistory func(id string)
+	GetState        func() bool
 }
 
 // NewServer cria uma nova instância do servidor web UI
@@ -130,6 +131,15 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		s.sendJSON(conn, map[string]interface{}{
 			"type": "history",
 			"data": s.GetHistory(),
+		})
+	}
+
+	// Sincroniza estado de gravação caso tenha reconectado no meio da reunião
+	if s.GetState != nil {
+		isRecording := s.GetState()
+		s.sendJSON(conn, map[string]interface{}{
+			"type": "status",
+			"data": map[string]bool{"isRecording": isRecording},
 		})
 	}
 

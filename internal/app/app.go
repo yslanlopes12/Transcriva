@@ -73,6 +73,9 @@ func New() (*App, error) {
 	app.webServer.OnDeleteHistory = app.deleteHistory
 	app.webServer.OnStart = app.StartTranscriptionGUI
 	app.webServer.OnStop = app.StopTranscriptionGUI
+	app.webServer.GetState = func() bool {
+		return app.session != nil
+	}
 
 	return app, nil
 }
