@@ -1,91 +1,131 @@
-# Transcriva (Go)
+<div align="center">
+  <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=for-the-badge&logo=go" alt="Go Version" />
+  <img src="https://img.shields.io/badge/OS-Windows-0078D6?style=for-the-badge&logo=windows" alt="Windows Only" />
+  <img src="https://img.shields.io/badge/Status-Ativo-success?style=for-the-badge" alt="Status Ativo" />
+</div>
 
-Um aplicativo 100% offline e local para Windows que transcreve automaticamente **qualquer áudio reproduzido pelo sistema** (Teams, Discord, Meet, Zoom, YouTube, etc.) e salva o texto em formato legível.
+<br>
 
-Com interface gráfica moderna baseada em navegador (Web UI embutida) e também interface de terminal (CLI), é leve, não requer C++ compiler na sua máquina para montar a interface e mantém sua privacidade garantida (nada sai do seu PC).
+# 🎙️ Transcriva
 
-## 🚀 Funcionalidades
+O **Transcriva** é uma ferramenta de código aberto, 100% offline e gratuita, focada em transcrever automaticamente **qualquer áudio reproduzido pelo seu computador** (Teams, Discord, Meet, Zoom, YouTube) usando Inteligência Artificial.
 
-- ✅ **Privacidade Total:** 100% offline, rodando localmente no seu computador.
-- ✅ **Áudio do Sistema:** Captura áudio diretamente do Windows (WASAPI Loopback). Funciona em qualquer app!
-- ✅ **Interface Gráfica (Web UI):** Interface moderna que abre automaticamente no seu navegador.
-- ✅ **Modo Terminal (CLI):** Opção de interface via linha de comando para devs e power-users.
-- ✅ **Auto-Setup Inteligente:** Baixa dependências e a IA automaticamente na primeira execução.
-- ✅ **Copiar & Baixar:** Botões dedicados para baixar `.txt` / `.wav` ou copiar no formato de ata de reunião.
-- ✅ **Histórico Recente (Cache):** Guarda e gerencia as 5 últimas gravações na interface.
+Sem limites de tempo, sem assinaturas e sem vazamento de dados. 
 
 ---
 
-## 👤 Para Usuários Finais (O jeito mais fácil)
+## 🎯 Por que o Transcriva foi criado?
+No mercado atual, a maioria das ferramentas de transcrição (como os bots que entram em reuniões do Teams ou Zoom) exigem:
+1. **Dinheiro:** Cobram mensalidades ou por minuto transcrito usando APIs na nuvem.
+2. **Privacidade:** Enviam o áudio da sua empresa ou conversa confidencial para servidores de terceiros.
+3. **Invasão:** Entram na sua reunião como um "Robô" visível para todos os participantes.
 
-Você não precisa saber programar nem configurar terminais para usar!
-
-1. **Baixe** o arquivo `transcriva.exe` (na aba *Releases* deste repositório, ou o arquivo enviado a você).
-2. Coloque-o em uma pasta vazia e dê um **duplo clique** para abrir.
-3. **Na primeira execução:** O programa identificará que é a sua primeira vez e começará a baixar o "cérebro" da Inteligência Artificial (~1.5 GB). Uma tela de carregamento aparecerá. *Isso só acontece uma vez!*
-4. **Pronto!** Uma aba se abrirá automaticamente no seu navegador com a Interface Gráfica pronta para iniciar a gravação. Nas próximas vezes, o aplicativo abrirá instantaneamente de forma 100% offline.
+O **Transcriva** foi criado para resolver isso. Ele roda silenciosamente **na sua própria máquina**, captura o som diretamente da sua placa de áudio e transcreve tudo em texto usando inteligência artificial local. Nada sai do seu computador.
 
 ---
 
-## 💻 Para Desenvolvedores (Build e CLI)
+## 🏗️ Arquitetura e Como Funciona?
 
-Se você é um desenvolvedor, quer usar a interface de terminal ou deseja explorar o código para adicionar novas *features*, siga os passos abaixo:
+O projeto foi projetado para ser leve, não necessitar de compiladores C++ complexos (`CGO_ENABLED=0`) e rodar perfeitamente no Windows.
+
+```mermaid
+flowchart TD
+    A[Áudio do Windows] -->|WASAPI Loopback| B(Capturador Go)
+    B -->|Buffer 16kHz| C{Fila de Processamento}
+    C -->|Arquivos WAV| D[Whisper CLI em 2º Plano]
+    D -->|Texto Transcrito| E(Servidor Web Embutido)
+    E <-->|WebSockets| F[Interface Gráfica - Navegador]
+```
+
+1. **Captura:** Utilizamos a API nativa do Windows (WASAPI) para interceptar qualquer som que saia nas suas caixas de som ou fones.
+2. **IA:** Usamos o poderoso motor [whisper.cpp](https://github.com/ggerganov/whisper.cpp) como um *worker* em segundo plano, que é extremamente otimizado para rodar em processadores comuns sem precisar de placa de vídeo dedicada.
+3. **Interface:** Em vez de usar bibliotecas pesadas de Desktop, o Transcriva levanta um Servidor Web local super leve e abre a interface no seu próprio navegador, se comunicando em tempo real via WebSockets.
+
+---
+
+## 👤 Para Usuários (O jeito mais fácil de usar)
+
+Se você não é programador e quer apenas usar a ferramenta nas suas reuniões, siga os passos abaixo:
+
+1. Acesse a seção **[Releases (Lançamentos)](https://github.com/yslanlopes12/Transcriva/releases)** do projeto (na lateral direita do GitHub).
+2. Baixe o arquivo mais recente chamado `transcriva.exe`.
+3. Crie uma pasta vazia no seu computador e coloque o `.exe` lá dentro.
+4. **Dê um duplo clique!** 
+   - Na primeira vez que você abrir, ele fará o download automático do cérebro da Inteligência Artificial (Modelo Whisper Medium - aprox. 1.5GB) e das ferramentas necessárias.
+   - Assim que terminar, a interface bonita e moderna abrirá sozinha no seu navegador.
+5. Basta clicar em **Iniciar Transcrição**!
+
+> **💡 Dica:** No final da reunião, você pode usar o botão "Copiar" para copiar toda a ata formatada para a sua área de transferência, ou baixar o arquivo `.txt` e o `.wav`.
+
+---
+
+## 💻 Para Desenvolvedores
+
+Se você quer rodar o código, testar modificações ou entender como ele foi feito, o setup é muito simples.
 
 ### Pré-requisitos
-- **Windows 10 ou 11** (64-bit)
-- **Go 1.22+**
+- **Golang 1.22** ou superior.
+- Sistema Operacional **Windows 10 ou 11**.
+- *(Não é necessário ter compilador GCC instalado!)*
 
-### 1. Compilando o Projeto
-Faça o clone do repositório, abra o terminal na raiz do projeto e rode o comando de build:
+### Como rodar localmente
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/yslanlopes12/Transcriva.git
+   cd Transcriva
+   ```
+2. Baixe as dependências do Go:
+   ```bash
+   go mod tidy
+   ```
+3. Rode o projeto:
+   ```bash
+   go run ./cmd/transcriva
+   ```
+*(Nota: Na primeira execução via código, ele também irá baixar os binários do whisper na pasta `/bin` e o modelo na pasta `/models`).*
 
-```powershell
-go build -o transcriva.exe -ldflags="-s -w" ./cmd/transcriva
-```
-*(Nota: Graças ao pacote `setup` injetado no código, você não precisa se preocupar em baixar o `whisper.cpp` manualmente. O próprio executável montará o ambiente na primeira vez que rodar).*
+### Comandos e Flags
+Você pode rodar o executável ou o código fonte com algumas flags específicas:
 
-### 2. Executando em Modo Terminal (CLI)
-Se você prefere usar o sistema diretamente na tela preta (ideal para automações ou ambientes minimalistas), rode o binário com a flag de modo:
-
-```powershell
-.\transcriva.exe -mode cli
-```
-Isso abrirá um painel interativo no console. Pressione `[ENTER]` para iniciar ou parar a gravação.
-
-### Estrutura do Projeto (Para adicionar Features)
-- `internal/app`: Orquestrador que liga a UI ao Backend.
-- `internal/transcription`: A mágica acontece aqui (Fila de single-worker otimizada para modelos pesados).
-- `internal/web/static`: HTML/Tailwind/JS da interface gráfica.
-
----
-
-## 🤖 Escolhendo o Modelo Ideal de IA (Avançado)
-
-Por padrão, o auto-setup baixa o modelo `Medium`, pois oferece excelente precisão para o idioma Português.
-O modelo dita a qualidade da transcrição e os requisitos de hardware da sua máquina.
-
-| Modelo | Consumo de RAM | Precisão PT-BR | Velocidade |
-|--------|----------------|----------------|------------|
-| **Tiny** | ~75 MB | Razoável | 🚀 Ultra Rápido |
-| **Small** | ~460 MB | Boa | ⚡ Rápido |
-| **Medium** (Padrão) | ~1.5 GB | **Excelente** | 🐢 Moderado |
-| **Large-v3** | ~3 GB | Perfeita | 🐌 Pesado |
-
-**Como trocar?** 
-Basta baixar o arquivo `.bin` desejado [nesta página oficial do HuggingFace](https://huggingface.co/ggerganov/whisper.cpp/tree/main), apagar o antigo e colar o novo dentro da pasta `models/` que o executável gerou. O aplicativo usará automaticamente o novo modelo!
+* **Modo Web (Padrão):** 
+  ```bash
+  go run ./cmd/transcriva -mode gui
+  ```
+* **Modo Terminal:** Caso prefira uma interface *hacker* direto no Prompt de Comando, sem abrir o navegador:
+  ```bash
+  go run ./cmd/transcriva -mode cli
+  ```
 
 ---
 
-## 🤝 Contribua (Open-Source)
+## 🤝 Como Contribuir (Open Source)
 
-Este projeto é **Open-Source** e adoraríamos ver a comunidade ajudando a melhorá-lo!
+O Transcriva é de código aberto e adoraríamos a sua ajuda para melhorá-lo (novas funcionalidades, design, correções). Para contribuir:
 
-Teve uma ideia bacana? Encontrou um bug? Quer adicionar uma *feature* nova (como exportação para SRT, tradução simultânea, diarização de locutores)?
-Siga o fluxo abaixo:
+1. Faça um **Fork** deste repositório (clicando no botão Fork lá em cima).
+2. Clone o seu Fork para a sua máquina:
+   ```bash
+   git clone https://github.com/SEU_USUARIO/Transcriva.git
+   ```
+3. Crie uma *Branch* para a sua funcionalidade:
+   ```bash
+   git checkout -b feature/minha-nova-funcionalidade
+   ```
+4. Faça o commit das suas alterações:
+   ```bash
+   git commit -m "feat: adiciona tradução em tempo real"
+   ```
+5. Envie (push) para a sua branch:
+   ```bash
+   git push origin feature/minha-nova-funcionalidade
+   ```
+6. Abra um **Pull Request** no repositório original.
 
-1. Faça um **Fork** deste repositório.
-2. Crie uma branch para a sua feature (`git checkout -b feature/minha-feature-nova`).
-3. Faça o commit das suas alterações (`git commit -m 'Adiciona feature X'`).
-4. Faça o push para a sua branch (`git push origin feature/minha-feature-nova`).
-5. Abra um **Pull Request (Merge Request)** detalhando o que você construiu.
+🛡️ **Pipeline CI/CD Automática:** Nosso projeto possui GitHub Actions! Assim que você abrir o Pull Request, nossos robôs testarão o seu código automaticamente para garantir que ele compila certinho no Windows.
 
-Ficaremos muito felizes em analisar seu código e realizar o merge para o projeto principal! Licenciado sob MIT.
+---
+
+<p align="center">
+  Feito com dedicação para quem preza pela privacidade. 🚀<br>
+  Distribuído sob a licença MIT.
+</p>
